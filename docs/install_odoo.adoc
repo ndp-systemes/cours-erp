@@ -1,0 +1,188 @@
+# Installation d'Odoo
+
+Cette page décrit les étapes pour installer Odoo depuis les sources pour pouvoir développer des modules Odoo sur une distribution Ubuntu.
+
+## Prérequis
+
+### Python
+
+Vous devez avoir Python 3.6 minimum installé. Vérifiez votre version de Python 3 avec la commande :
+
+```shell
+$ python3 --version
+Python 3.6.9
+```
+
+Vous devez également avoir `pip3` installé. Vérifiez avec :
+
+```shell
+$ pip3 --version
+pip 9.0.1 from /usr/lib/python3/dist-packages (python 3.6)
+```
+
+Si pip n'est pas installé, installez-le avec :
+```
+$ sudo apt-get install python3-pip
+```
+
+### PostgreSQL
+
+Odoo nécessite le serveur de base de données PostgreSQL.
+Installez-le avec la commande suivante:
+
+```
+$ sudo apt-get install postgresql postgresql-client
+```
+
+Créez un utilisateur de base de données avec le même nom que votre utilisateur linux:
+
+```
+sudo -u postgres createuser -s $USER
+```
+
+Créez une base de données par défaut avec le même nom que votre utilisateur
+```
+createdb $USER
+```
+
+### git
+
+Si vous n'avez pas encore installé git sur votre machine, faîtes-le avec la commande :
+
+```
+$ sudo apt-get install git
+```
+
+### Fichiers headers pour la compilation des dépendances
+
+Installer les fichiers de headers suivants:
+
+```
+$ sudo apt install python3-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev
+```
+
+### wkhtmltopdf
+
+`wkhtmltopdf` est un utilitaire qui permet de transformer des pages HTML en fichier PDF.
+Il est utilisé par Odoo pour générer des rapports tels que des devis ou des factures.
+
+Téléchargez wkhtmltopdf https://github.com/wkhtmltopdf/wkhtmltopdf/releases/tag/0.12.5[ici] en choisissant la version pour votre système.
+
+Installez le deb avec la commande suivante dans le dossier où vous avez téléchargé wkhtmltopdf :
+
+```
+$ sudo apt-get install ./wkhtmltox_0.12.5-1.bionic_amd64.deb
+```
+
+## Installer Odoo
+
+Dans toute la suite du cours, nous supposons que vous avez un dossier `workspace` dans lequel se trouve tous vos développements.
+Les commandes dans la suite sont à lancer dans les dossiers correspondants relatifs à `workspace`.
+Charge à vous de remplacer `workspace` par le chemin complet vers votre dossier de base dans toutes les commandes qui suivent.
+
+### Télécharger les sources
+
+Télécharger les sources d'Odoo. Cette opération va créer un dossier `odoo` dans votre `workspace`.
+
+```
+$ cd workspace
+workspace$ git clone --depth=1 --single-branch -b 13.0 github.com/odoo/odoo.git
+```
+
+Le `--depth=1 --single-branch` permet de limiter le téléchargement à la version d'Odoo qui nous intéresse et sans historique.
+
+### Installer les dépendances
+
+Nous allons maintenant installer les bibliothèques python nécessaires au fonctionnement d'Odoo:
+
+```
+workspace/odoo$ pip3 install wheel -r requirements.txt
+```
+
+Si cette étape génère des erreurs, vérifiez la configuration de votre système (notamment les fichiers de headers) et recommencez.
+
+NOTE: Il est complètement inutile d'essayer d'aller plus loin si cette commande n'a pas fonctionné.
+
+### Générer le fichier de configuration
+
+La première fois que vous lancez Odoo **(et uniquement la première fois)**, faîtes-le avec la commande suivante qui va générer un fichier de configuration :
+
+```
+workspace/odoo$ odoo-bin -s -c odoo.conf
+```
+
+Arrêtez le serveur immédiatement avec `Ctrl-C` et vérifiez que vous avez bien un fichier de configuration `workspace/odoo/odoo.conf`.
+
+Editez le fichier `workspace/odoo/odoo.conf`.
+Pour le moment seule la première ligne nous intéresse.
+Elle décrit l'ensemble des dossiers dans lesquels on est susceptibles de trouver des modules Odoo:
+
+```
+addons_path = workspace/odoo/odoo/addons,workspace/odoo/addons
+```
+
+Nous allons créer un nouveau dossier pour y mettre les modules que nous allons développer, et le déclarer ici.
+
+```
+workspace$ mkdir odoo_modules
+```
+
+IMPORTANT: Notez que le dossier que nous avons créé est en dehors du dossier `odoo`.
+Dans toute la suite, nous ne modifierons jamais un seul fichier dans le dossier odoo, mis à part le `odoo.conf`
+
+Ajoutez maintenant notre nouveau dossier dans le fichier `odoo.conf`.
+La ligne `addons_path` doit maintenant ressembler à ceci:
+
+```toml
+addons_path = workspace/odoo/odoo/addons,workspace/odoo/addons,workspace/odoo_modules
+```
+
+## Lancer Odoo
+
+Nous sommes maintenant prêts pour lancer le serveur Odoo avec la commande suivante :
+
+```
+workspace/odoo$ odoo-bin -c odoo.conf
+```
+
+Vous pouvez arrêter le serveur à tout moment avec Ctrl-C.
+
+NOTE: Si vous avez des erreurs dans le log du serveur au démarrage, vérifiez votre configuration.
+
+Vous pouvez maintenant vous connecter au serveur avec votre navigateur préféré à l'adresse http://localhost:8069/.
+
+### Créer une base de données
+
+Lors de la première connexion, Odoo vous demandera de créer une nouvelle base de données.
+
+Remplissez le formulaire avec les données suivantes:
+
+|===
+|Database Name|test
+|Email|admin
+|Password|admin
+|Phone number|123456
+|Language|Français
+|Country|France
+|Demo data|oui (*)
+|===
+(*) Cochez la case ici pour découvrir Odoo avec des données de démonstration
+
+A la fin de la création de la base de données, vous arrivez sur l'écran de login.
+Connectez-vous à votre base de données avec:
+
+|===
+|Email|admin
+|Password|admin
+|===
+
+### Installer des modules et découvrir Odoo
+
+Lorsque vous vous connectez à une base de données vierge, vous arrivez directement sur la page d'installation des modules (Apps).
+
+Installez les modules que vous souhaitez pour découvrir Odoo en cliquant sur "Installer".
+
+NOTE: Nous vous recommandons de commencer par le module "Ventes"
+
+Naviguez ensuite sur les différents écrans à partir du menu principal en haut à gauche.
+Commencez par créer un devis et essayez de le confirmer en une vente.
