@@ -1,0 +1,22 @@
+# Sujet du projet 2020
+
+## Modalités d'évaluation
+
+Le module ERP sera évalué sur la base du projet dont le sujet est décrit ci-dessous.
+
+Vous avez tous le même sujet de façon à ce que vous puissiez vous entraider.
+En effet, savoir demander de l'aide et aider ses collègues sont des qualités très importantes chez un bon développeur.
+
+Vous serez donc noté, non pas tant sur la réalisation du sujet du projet lui-même, mais plus sur votre touche personnelle au travers de :
+
+- Votre capacité à montrer votre maîtrise du framework Odoo
+- Votre capacité à aller au-delà de ce qui est explicitement demandé par le client, tout en restant dans le sujet (compréhension du besoin implicite).
+
+[IMPORTANT]
+====
+Vous trouverez sans peine de nombreux modules communautaires d'Odoo, peut-être certains dont les fonctionnalités s'approchent du présent sujet.
+
+Utiliser de tels modules comme base de votre travail est probablement un mauvais calcul dans la mesure où ils contiennent de nombreuses fonctionnalités que vous n'aurez pas apprises lors de ce cours.
+
+Construisez plutôt votre module depuis la feuille blanche, et n'hésitez pas à y inclure des astuces inspirées d'autres modules.
+====
