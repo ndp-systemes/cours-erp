@@ -133,7 +133,7 @@ Dans toute la suite, nous ne modifierons jamais un seul fichier dans le dossier 
 Ajoutez maintenant notre nouveau dossier dans le fichier `odoo.conf`.
 La ligne `addons_path` doit maintenant ressembler à ceci:
 
-```toml
+```
 addons_path = workspace/odoo/odoo/addons,workspace/odoo/addons,workspace/odoo_modules
 ```
 
