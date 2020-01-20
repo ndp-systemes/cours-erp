@@ -118,7 +118,7 @@ workspace/odoo$ pip3 install wheel -r requirements.txt
 Pour ceux qui sont sous Ubuntu 16.04, la commande à exécuter est la suivante:
 
 ```shell
-workspace/odoo$ python3.6 -m pip install -r requirements.txt
+workspace/odoo$ python3.6 -m pip install wheel -r requirements.txt
 ```
 ====
 Si cette étape génère des erreurs, vérifiez la configuration de votre système (notamment les fichiers de headers) et recommencez.
