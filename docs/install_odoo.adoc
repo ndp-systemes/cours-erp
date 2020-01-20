@@ -86,7 +86,7 @@ Télécharger les sources d'Odoo. Cette opération va créer un dossier `odoo` d
 
 ```
 $ cd workspace
-workspace$ git clone --depth=1 --single-branch -b 13.0 github.com/odoo/odoo.git
+workspace$ git clone --depth=1 --single-branch -b 13.0 https://github.com/odoo/odoo.git
 ```
 
 Le `--depth=1 --single-branch` permet de limiter le téléchargement à la version d'Odoo qui nous intéresse et sans historique.

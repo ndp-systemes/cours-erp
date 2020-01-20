@@ -19,7 +19,6 @@ NOTE: A chaque modification du code source, vous devez redémarrer Odoo pour qu'
 Aussi bien les extensions du serveur Odoo que celle du client sont packagées dans des modules qui pourront être chargés dans la base de données.
 
 Les modules Odoo peuvent ajouter des fonctionnalités business complètement nouvelles ou modifier/étendre des logiques déjà implémentées par d'autres modules.
-Par exemple, un module peut être créé pour ajouter les rgèles de comptabilité propres à un pays, alors qu'un autre pourrait ajouter un visualisation en temps réel d'une flotte d'autobus.
+Par exemple, un module pourrait être créé pour ajouter les règles de comptabilité propres à un pays, alors qu'un autre pourrait créer une visualisation en temps réel d'une flotte d'autobus.
 
-Ainsi, tout dans Odoo commence et se termine par des modules.
-
+Ainsi, dans Odoo, tout les développements sont des modules.
