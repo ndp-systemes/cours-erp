@@ -172,8 +172,10 @@ addons_path = workspace/odoo/odoo/addons,workspace/odoo/addons,workspace/odoo_mo
 Nous sommes maintenant prêts pour lancer le serveur Odoo avec la commande suivante :
 
 ```
-workspace/odoo$ odoo-bin -c odoo.conf
+workspace/odoo$ python3.6 odoo-bin -d test -c odoo.conf
 ```
+
+Où `test` est le nom de la base de données que vous voulez créer.
 
 Vous pouvez arrêter le serveur à tout moment avec Ctrl-C.
 
@@ -183,22 +185,8 @@ Vous pouvez maintenant vous connecter au serveur avec votre navigateur préfér�
 
 ### Créer une base de données
 
-Lors de la première connexion, Odoo vous demandera de créer une nouvelle base de données.
+La base de données a normalement été créée grâce au `-d test`.
 
-Remplissez le formulaire avec les données suivantes:
-
-|===
-|Database Name|test
-|Email|admin
-|Password|admin
-|Phone number|123456
-|Language|Français
-|Country|France
-|Demo data|oui (*)
-|===
-(*) Cochez la case ici pour découvrir Odoo avec des données de démonstration
-
-A la fin de la création de la base de données, vous arrivez sur l'écran de login.
 Connectez-vous à votre base de données avec:
 
 |===
