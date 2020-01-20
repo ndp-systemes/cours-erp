@@ -75,6 +75,14 @@ Installer les fichiers de headers suivants:
 $ sudo apt install python3-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev
 ```
 
+[NOTE]
+====
+Si vous utilisez ubuntu 16.04, tapez la commande suivante à la place:
+```shell
+$ sudo apt-get install python3.6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev
+```
+====
+
 ### wkhtmltopdf
 
 `wkhtmltopdf` est un utilitaire qui permet de transformer des pages HTML en fichier PDF.
