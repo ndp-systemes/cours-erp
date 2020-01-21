@@ -1,4 +1,5 @@
 # Tutoriel de développement Odoo
+:toc:
 
 ## Démarrage et arrêt du serveur Odoo
 
@@ -7,12 +8,24 @@ Vous devez avoir installé Odoo depuis les sources comme décrit link:install_od
 Pour rappel, le serveur Odoo se démarre avec la commande suivante dans le dossier d'installation d'Odoo :
 
 ```
-workspace/odoo$ odoo-bin -c odoo.conf
+workspace/odoo$ python3.6 odoo-bin -d tutoriel -c odoo.conf
 ```
 
-Il s'arrête avec Ctrl-C.
+Où `tutoriel` est le nom de la base de données que vous allez utiliser pour ce tutoriel.
+
+Le serveur s'arrête avec Ctrl-C.
 
 NOTE: A chaque modification du code source, vous devez redémarrer Odoo pour qu'il prenne effet.
+
+## Mode debug
+
+Le mode debug permet au développeur d'avoir accès à des informations et menus supplémentaires dans l'interface par rapport à l'utilisateur standard.
+
+Pour passer en mode debug, ajouter `?debug=1` à l'URL odoo, juste avant le `#`:
+
+```
+http://localhost:8069/web?debug=1#...
+```
 
 ## Création d'un module Odoo
 
@@ -22,3 +35,545 @@ Les modules Odoo peuvent ajouter des fonctionnalités business complètement nou
 Par exemple, un module pourrait être créé pour ajouter les règles de comptabilité propres à un pays, alors qu'un autre pourrait créer une visualisation en temps réel d'une flotte d'autobus.
 
 Ainsi, dans Odoo, tout les développements sont des modules.
+
+Dans ce tutoriel, nous allons créer un module, appelé `openacademy` permettant de gérer des cours.
+
+### Composition d'un module
+Un module Odoo peut contenir plusieurs éléments:
+
+Objets métier::
+Déclarées comme classes Python, ces ressources sont automatiquement conservées par Odoo en fonction de leur configuration
+
+Vues d'objets::
+Définition de l'interface utilisateur des objets métier
+
+Fichiers de données::
+Fichiers XML ou CSV déclarant les métadonnées du modèle:
+- Vues ou rapports ,
+- Données de configuration (paramétrage des modules, règles de sécurité ),
+- Données de démonstration
+- ...
+
+Contrôleurs Web::
+Gére les demandes des navigateurs Web
+
+Données Web statiques::
+Images, fichiers CSS ou javascript utilisés par l'interface Web ou le site Web
+
+### Structure d'un module
+
+Chaque module est un dossier dans un dossier de modules.
+Les dossiers de modules sont spécifiés à l'aide de l'option `addons_path` dans le fichier de configuration.
+
+La structure typique d'un module est la suivante
+
+```
+openacademy/
+    __manifest__.py
+    __init__.py
+    models/
+        __init__.py
+    views/
+    data/
+    demo/
+    security/
+    i18n/
+    controllers/
+    static/
+    test/
+    report/
+    wizard/
+```
+
+#### Le fichier de manifeste
+
+Le fichier `\\__manifest__.py` est le manifeste Odoo du module.
+Il contient les informations permettant à Odoo de charger ce module:
+
+.\\__manifest__.py
+```python
+{
+    'name': "Open Academy",
+
+    'summary': """Manage trainings""",
+
+    'description': """
+        Open Academy module for managing trainings:
+            - training courses
+            - training sessions
+            - attendees registration
+    """,
+
+    'author': "My Company",
+    'website': "http://www.yourcompany.com",
+    'category': 'Test',
+    'version': '0.1',
+
+    # any module necessary for this one to work correctly
+    'depends': ['base'],
+
+    # always loaded
+    'data': [],
+    # only loaded in demonstration mode
+    'demo': [],
+}
+```
+
+La plupart des clés du fichier décrivent ce que fait le module.
+
+3 clés méritent notre attention:
+
+`depends`::
+La liste des modules Odoo dont ce module dépend.
+Ici notre module openacademy ne dépend que du module `base`.
+
+`data`::
+Tous les fichiers qui ne sont pas des fichiers Python doivent être déclarés ici pour qu'il soient pris en compte.
+
+`demo`::
+Les fichiers de données de démonstration qui ne seront chargés que lorsqu'Odoo est en mode démonstration doivent être déclarés ici.
+
+#### Les fichiers `\\__init__.py`
+
+Les fichiers `\\__init__.py` sont des fichiers natifs python qui permettent de déclarer les packages python.
+
+Dans le cadre d'Odoo, ces fichiers doivent déclarer tous les fichiers python du dossier où ils se trouvent (à l'exception notable du manifeste), ainsi que tous les sous-dossiers où il y a d'autres fichiers python.
+
+Dans le fichier \\__init__.py à la racine du module, nous n'avons pas de fichier python, en revanche, nous avons un sous-dossier `models` avec lui-même un `\\__init__.py`.
+Nous déclarons donc ce sous-dossier:
+
+.\\__init__.py
+```python
+from . import models
+```
+
+Dans le dossier `models`, il n'y a pas de fichier python pour l'instant.
+Notre \\__init__.py est pour l'instant vide.
+
+.models/\\__init__.py
+```python
+```
+
+#### Créez votre premier module
+
+Dans `workspace/odoo_modules`, créez un dossier `openacademy`.
+Dans ce dossier:
+
+- Recopiez les fichiers `\\__manifest__.py`, `\\__init__.py` ci-dessus
+- Créez un dossier `models` et mettez-y un fichier `\\__init__.py` vide.
+
+Votre premier module ne fait rien, mais il peut déjà être installé.
+
+
+- Redémarrez votre serveur Odoo
+- Passez en <<Mode debug,mode debug>>.
+- Allez dans le menu "Applications"
+- Cliquez sur "Mettre à jour la liste des applications" et validez la popup
+- Une fois la mise à jour effectuée, supprimez le filtre "Applications" dans la barre de recherche et tapez "openacademy" pour chercher votre module.
+- Votre module doit apparaitre dans la liste, vous pouvez alors l'installer en cliquant sur "Installer"
+
+NOTE: Une fois que votre module est reconnu, vous n'aurez plus à cliquer sur "Mettre à jour la liste des applications", il sera toujours disponible.
+
+Vérifiez dans la liste que votre module est bien marqué comme étant installé.
+
+### Couche ORM
+
+Un composant clé d'Odoo est la couche ORM.
+Cette couche évite d'avoir à écrire la plupart du SQL à la main et fournit des services d'extensibilité et de sécurité.
+
+Les objets métier sont déclarés en tant que classes Python étendant la classe `Model` qui les intègre dans le système de persistance automatisé.
+
+Les modèles peuvent être configurés en définissant un certain nombre d'attributs lors de leur définition.
+L'attribut le plus important est `_name` qui est requis et définit le nom du modèle dans le système Odoo.
+Voici une définition minimale complète d'un modèle:
+
+```python
+from odoo import models
+
+class MinimalModel(models.Model):
+    _name = 'test.model'
+```
+
+### Champs de modèle
+
+Les champs sont utilisés pour définir ce que le modèle peut stocker et où.
+Les champs sont définis comme des attributs sur la classe de modèle:
+
+```python
+from odoo import models, fields
+
+class LessMinimalModel(models.Model):
+    _name = 'test.model2'
+
+    name = fields.Char()
+```
+
+#### Attributs communs
+
+Tout comme le modèle lui-même, ses champs peuvent être configurés, en passant des attributs de configuration comme paramètres:
+
+```python
+name = field.Char(required=True)
+```
+
+Certains attributs sont disponibles sur tous les champs, voici les plus courants:
+
+string::
+__(unicode, par défaut: nom du champ)__
++
+Le libellé du champ dans l'interface utilisateur (visible par les utilisateurs).
+
+required::
+__(bool, Par défaut: False)__
++
+Si True le champ ne peut pas être vide, il doit soit avoir une valeur par défaut, soit toujours recevoir une valeur lors de la création d'un enregistrement.
+
+help::
+__(unicode, Par défaut: "")__
++
+Fournit une info-bulle d'aide aux utilisateurs de l'interface utilisateur.
+
+index::
+__(bool, Par défaut: False)__
++
+Demande à Odoo de créer un index de base de données sur la colonne.
+
+#### Champs simples
+
+Il existe deux grandes catégories de champs:
+
+- les champs «simples» qui sont des valeurs atomiques stockées directement dans la table du modèle
+- les champs «relationnels» reliant les enregistrements (du même modèle ou de modèles différents).
+
+Par exemple, `Boolean`, `Date`, `Char` sont des types de champs simples.
+
+#### Champs réservés
+
+Odoo crée quelques champs dans tous les modèles.
+Ces champs sont gérés par le système et ne doivent pas être modifiés manuellement.
+En revanche, ils peuvent être lus si nécessaires:
+
+id::
+__(Integer)__
+Identificateur unique d'un enregistrement dans son modèle.
+
+create_date::
+__(Datetime)__
+Date de création de l'enregistrement.
+
+create_uid::
+__(Many2one)__
+Utilisateur qui a créé l'enregistrement.
+
+write_date::
+__(Datetime)__
+Dernière date de modification de l'enregistrement.
+
+write_uid::
+__(Many2one)__
+Dernier utilisateur ayant modifié l'enregistrement.
+
+#### Champs spéciaux
+
+Par défaut, Odoo requiert également un champ `name` sur tous les modèles pour différents comportements d'affichage et de recherche.
+Le champ utilisé à ces fins peut être remplacé par la définition `_rec_name`.
+
+#### Créez votre premier modèle dans votre module
+
+Définissez un nouvel objet "cours" sur le modèle de données dans le module openacademy.
+Un cours a un titre et une description.
+Les cours doivent obligatoirement avoir un titre.
+
+Pour cela, créez un fichier `models/openacademy.py` pour y mettre votre modèle:
+
+.models/models.py
+```python
+from odoo import models, fields, api
+
+class Course(models.Model):
+    _name = 'openacademy.course'
+    _description = "OpenAcademy Courses"
+
+    name = fields.Char(string="Title", required=True)
+    description = fields.Text()
+```
+
+IMPORTANT: Prenez le temps de bien comprendre le sens du code ci-dessus.
+N'hésitez pas à vous le faire réexpliquer.
+
+Modifiez ensuite le fichier `models/\\__init__.py` pour charger votre nouveau fichier:
+
+.models/\\__init__.py
+```python
+from . import openacademy
+```
+
+### Fichiers de données
+
+Odoo est un système hautement piloté par les données.
+Bien que le comportement soit personnalisé à l'aide du code Python, une partie de la valeur d'un module se trouve dans les données qu'il configure lors du chargement.
+
+NOTE: Certains modules existent uniquement pour ajouter des données dans Odoo
+
+Les données du module sont déclarées via des fichiers de données XML avec des balises `<record>`.
+Chaque balise `<record>` crée ou met à jour un enregistrement de base de données.
+
+```xml
+<odoo>
+
+        <record model="{model name}" id="{record identifier}">
+            <field name="{a field name}">{a value}</field>
+        </record>
+
+</odoo>
+```
+
+model::
+le nom du modèle Odoo pour l'enregistrement.
+
+id::
+un identifiant externe, il permet de se référer à l'enregistrement (sans avoir à connaître son identifiant en base de données).
+
+<field>::
+Ces balises ont un `name` qui est le nom du champ dans le modèle (par exemple description).
+Leur corps est la valeur du champ.
+
+Les fichiers de données doivent être déclarés dans le fichier manifeste à charger, ils peuvent être déclarés :
+
+- Soit dans le liste 'data' (toujours chargée)
+- Soit dans la liste 'demo' (uniquement chargée en mode démonstration).
+
+#### Créez votre premier fichier de données
+
+Créez des données de démonstration en remplissant le modèle de cours avec quelques cours de démonstration.
+
+Pour ce faire, créez un fichier `demo/demo.xml`:
+
+.demo/demo.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+        <record model="openacademy.course" id="course0">
+            <field name="name">Course 0</field>
+            <field name="description">Course 0's description
+
+Can have multiple lines
+            </field>
+        </record>
+        <record model="openacademy.course" id="course1">
+            <field name="name">Course 1</field>
+        </record>
+        <record model="openacademy.course" id="course2">
+            <field name="name">Course 2</field>
+            <field name="description">Course 2's description</field>
+        </record>
+
+</odoo>
+```
+
+Rappelez-vous: il faut maintenant déclarer notre nouveau fichier dans le manifeste.
+Modifiez la ligne avec la clé `demo` de la façon suivante:
+
+.\\__manifest__.py
+```python
+demo = [
+    'demo/demo.xml'
+]
+```
+
+Redémarrez maintenant votre serveur Odoo, puis retournez dans le menu des applications pour mettre à jour votre module.
+
+[NOTE]
+====
+Pour éviter d'avoir à remettre à jour manuellement votre module, redémarrez dorénavant votre serveur avec la commande suivante:
+
+`workspace/odoo$ python3.6 -d tutoriel -u openacademy -c odoo.conf`
+
+L'option `-u` permet de faire la mise à jour du module donné au démarrage du serveur.
+====
+
+Vérifiez maintenant que votre base de données a été modifiée :
+
+- Une table `openacademy_course` a été créée qui contient notamment deux colonnes `name` et `description`
+- 3 enregistrements ont été créés ("Course 0", "Course 1" et "Course 2") suite au chargement du fichier `demo/demo.xml`
+
+Vous pouvez le faire avec l'outil SQL de votre choix. Par exemple avec `psql`:
+
+```
+$ psql tutoriel
+
+tutoriel=# SELECT * FROM openacademy_course;
+```
+
+IMPORTANT: Le contenu des fichiers de données n'est chargé que lorsqu'un module est installé ou mis à jour.
+
+### Actions et menus
+
+Les actions et les menus sont des enregistrements comme les autres dans la base de données, généralement déclarés via des fichiers de données.
+Les actions peuvent être déclenchées de trois manières:
+
+- en cliquant sur les éléments de menu (liés à des actions spécifiques)
+- en cliquant sur les boutons dans les vues (s'ils sont liés à des actions)
+- comme actions contextuelles sur l'objet
+
+Parce que les menus sont quelque peu complexes à déclarer, il existe un raccourci `<menuitem>` pour déclarer un
+enregistrement sur le modèle `ir.ui.menu` et le connecter plus facilement à l'action correspondante.
+
+Par exemple:
+
+```xml
+<record model="ir.actions.act_window" id="action_list_ideas">
+    <field name="name">Ideas</field>
+    <field name="res_model">idea.idea</field>
+    <field name="view_mode">tree,form</field>
+</record>
+<menuitem id="menu_ideas" parent="menu_root" name="Ideas" sequence="10"
+          action="action_list_ideas"/>
+```
+
+[IMPORTANT]
+====
+L'action doit être déclarée avant son menu correspondant dans le fichier XML.
+
+Les fichiers de données sont exécutés séquentiellement, les `id` d'actions doivent être présentes dans la base de données avant que le menu puisse être créé.
+====
+
+#### Crééz maintenant une action et un menu
+
+Définissez de nouvelles entrées de menu pour accéder aux cours sous l'entrée de menu OpenAcademy.
+Un utilisateur doit pouvoir:
+
+- Afficher une liste de tous les cours
+- Créer / modifier des cours
+
+Pour ce faire, créez un fichier `views/openacademy.xml` avec le contenu suivant:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+        <!-- action -->
+        <record model="ir.actions.act_window" id="course_list_action">
+            <field name="name">Courses</field>
+            <field name="res_model">openacademy.course</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Create the first course
+                </p>
+            </field>
+        </record>
+
+        <!-- top level menu: no parent -->
+        <menuitem id="main_openacademy_menu" name="Open Academy"/>
+        <!-- A first level in the left side menu is needed
+             before using action= attribute -->
+        <menuitem id="openacademy_menu" name="Open Academy"
+                  parent="main_openacademy_menu"/>
+        <!-- the following menuitem should appear *after*
+             its parent openacademy_menu and *after* its
+             action course_list_action -->
+        <menuitem id="courses_menu" name="Courses" parent="openacademy_menu"
+                  action="course_list_action"/>
+
+</odoo>
+```
+
+IMPORTANT: N'oubliez pas de déclarer ce nouveau fichier dans la liste `data` du manifeste.
+
+Redémarrez votre serveur.
+
+Vous devez voir apparaitre un menu "Open Academy" vous permettant d'accéder aux cours.
+Ajoutez, supprimez, modifiez des cours et vérifiez dans la base de données que les modifications ont bien été prises en compte.
+
+[NOTE]
+====
+Avant d'aller plus loin, assurez-vous d'avoir bien compris:
+
+- Ce qu'est un modèle, comment sa déclaration impacte à la fois la base de données et l'interface utilisateur
+- Le fait que la base de données contient à la fois des données utilisateur (celles que vous avez créé dans l'interface)
+et des données de définition, comme les actions et les menus, qui relèvent du développement de l'application.
+
+N'hésitez pas à vous faire réexpliquer si besoin.
+====
+
+## Vues de base
+
+Les vues définissent la façon dont les enregistrements d'un modèle sont affichés.
+Chaque type de vue représente un mode de visualisation (liste des enregistrements, formulaire, graphique,…).
+Les vues peuvent être demandées de manière générique via leur type (par exemple une liste de partenaires) ou spécifiquement via leur identifiant.
+Pour les demandes génériques, la vue avec le type correct et la priorité la plus basse sera utilisée (donc la vue de priorité la plus basse de chaque type est la vue par défaut pour ce type).
+
+L'héritage des vues permet de modifier les vues déclarées ailleurs (ajout ou suppression de contenu).
+
+NOTE: Jusque là, vous n'avez pas spécifié de vue, mais vous avez quand même pu accéder aux cours.
+C'est parce qu'Odoo vous a généré automatiquement des vues standards.
+
+### Déclaration générique d'une vue
+
+Une vue est déclarée comme un enregistrement du modèle `ir.ui.view`.
+Le type de vue est déduit de l'élément racine du champ `arch`:
+
+```xml
+<record model="ir.ui.view" id="view_id">
+    <field name="name">view.name</field>
+    <field name="model">object_name</field>
+    <field name="priority" eval="16"/>
+    <field name="arch" type="xml">
+        <!-- view content: <form>, <tree>, <graph>, ... -->
+    </field>
+</record>
+```
+
+### Vues listes
+
+Les vues listes affichent les enregistrements sous forme de tableau.
+
+Leur élément racine est `<tree>`.
+La forme la plus simple de liste répertorie simplement tous les champs à afficher dans le tableau (chaque champ sous forme de colonne):
+
+```xml
+<tree string="Idea list">
+    <field name="name"/>
+    <field name="inventor_id"/>
+</tree>
+```
+
+### Vues formulaires
+
+Les formulaires sont utilisés pour créer et modifier des enregistrements.
+
+Leur élément racine est `<form>`.
+Ils sont composés d'éléments de structure de haut niveau (groupes, onglets) et d'éléments interactifs (boutons et champs):
+
+```xml
+<form string="Idea form">
+    <group colspan="4">
+        <group colspan="2" col="2">
+            <separator string="General stuff" colspan="2"/>
+            <field name="name"/>
+            <field name="inventor_id"/>
+        </group>
+
+        <group colspan="2" col="2">
+            <separator string="Dates" colspan="2"/>
+            <field name="active"/>
+            <field name="invent_date" readonly="1"/>
+        </group>
+
+        <notebook colspan="4">
+            <page string="Description">
+                <field name="description" nolabel="1"/>
+            </page>
+        </notebook>
+
+        <field name="state"/>
+    </group>
+</form>
+```
+
+#### Créez une vue formulaire
+
+Créez votre propre vue de formulaire pour l'objet Course.
+Les données affichées doivent être: le nom et la description du cours.
+
