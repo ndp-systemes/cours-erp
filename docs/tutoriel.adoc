@@ -704,13 +704,13 @@ Mettez-là à la suite de la vue formulaire:
 
 Redémarrez le serveur et tapez quelques lettres dans la barre de recherche d'Odoo pour voir la possibilité de chercher par nom ou par description.
 
-=== Relations entre modèles
+== Relations entre modèles
 
 Un enregistrement d'un modèle peut être lié à un enregistrement d'un autre modèle.
 Par exemple, un enregistrement de commande client est lié à un enregistrement client qui contient les données client;
 il est également lié à ses enregistrements de ligne de commande.
 
-==== Créez un modèle de session
+=== Créez un modèle de session
 
 Pour le module Open Academy, nous considérons un modèle de sessions : une session est une occurrence d'un cours enseigné à un moment donné pour un public donné.
 
@@ -772,7 +772,7 @@ Ajoutez l'accès à l'objet session dans `views/openacademy.xml`, à la fin du f
 </odoo>
 ----
 
-==== Champs relationnels
+=== Champs relationnels
 
 Les champs relationnels relient les enregistrements, du même modèle (hiérarchies) ou entre différents modèles.
 
