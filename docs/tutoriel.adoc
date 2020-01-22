@@ -396,6 +396,16 @@ demo = [
 ]
 ----
 
+Créez également un fichier de sécurité `security/ir.model.access.csv`:
+
+.security/ir.model.access.csv
+```csv
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_openacademy_course,access_openacademy_course,model_openacademy_course,base.group_user,1,1,1,1
+```
+
+Et ajouter le dans le fichier manifeste dans les `data`.
+
 Redémarrez maintenant votre serveur Odoo, puis retournez dans le menu des applications pour mettre à jour votre module.
 
 [NOTE]
