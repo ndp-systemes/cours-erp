@@ -412,7 +412,7 @@ Redémarrez maintenant votre serveur Odoo, puis retournez dans le menu des appli
 ====
 Pour éviter d'avoir à remettre à jour manuellement votre module, redémarrez dorénavant votre serveur avec la commande suivante:
 
-`workspace/odoo$ python3.6 -d tutoriel -u openacademy -c odoo.conf`
+`workspace/odoo$ python3.6 odoo-bin -d tutoriel -u openacademy -c odoo.conf`
 
 L'option `-u` permet de faire la mise à jour du module donné au démarrage du serveur.
 ====
