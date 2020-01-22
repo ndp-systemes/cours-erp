@@ -316,7 +316,7 @@ Modifiez ensuite le fichier `models/\\__init__.py` pour charger votre nouveau fi
 .models/\\__init__.py
 [source,python]
 ----
-from . import openacademy
+from . import models
 ----
 
 === Fichiers de données
