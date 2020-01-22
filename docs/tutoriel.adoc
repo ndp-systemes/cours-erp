@@ -391,7 +391,7 @@ Modifiez la ligne avec la clé `demo` de la façon suivante:
 .\\__manifest__.py
 [source,python]
 ----
-demo = [
+'demo': [
     'demo/demo.xml'
 ]
 ----
