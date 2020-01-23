@@ -971,3 +971,248 @@ Redémarrez le serveur. Ajoutez des participants aux sessions.
 
 NOTE: Prenez le temps de bien comprendre ces trois types de relations entre modèles.
 Inspectez la base de données pour voir comment chacune de ces relations est implémentée.
+
+== Héritage
+
+=== Héritage des modèles
+
+Odoo fournit deux mécanismes d' héritage pour étendre un modèle existant de manière modulaire.
+
+Le premier mécanisme d'héritage permet à un module de modifier le comportement d'un modèle défini dans un autre module:
+
+- ajouter des champs à un modèle,
+- remplacer la définition des champs sur un modèle,
+- ajouter des contraintes à un modèle,
+- ajouter des méthodes à un modèle,
+- remplacer les méthodes existantes sur un modèle.
+
+Le deuxième mécanisme d'héritage (délégation) permet de lier chaque enregistrement d'un modèle à un enregistrement dans un modèle parent et fournit un accès transparent aux champs de l'enregistrement parent.
+
+image::images/inheritance_methods.png[]
+
+=== Héritage des vues
+
+Au lieu de modifier les vues existantes en place (en les écrasant), Odoo fournit l'héritage des vues où les vues "d'extension" sont appliquées au-dessus des vues racine, et peuvent ajouter ou supprimer du contenu.
+
+Une vue d'extension fait référence à son parent à l'aide du champ `inherit_id`, et au lieu d'une seule vue, son champ `arch` est composé d'un certain nombre d'éléments `xpath` sélectionnant et modifiant le contenu de leur vue parent:
+
+[source,xml]
+----
+<!-- improved idea categories list -->
+<record id="idea_category_list2" model="ir.ui.view">
+    <field name="name">id.category.list2</field>
+    <field name="model">idea.category</field>
+    <field name="inherit_id" ref="id_category_list"/>
+    <field name="arch" type="xml">
+        <!-- find field description and add the field
+             idea_ids after it -->
+        <xpath expr="//field[@name='description']" position="after">
+          <field name="idea_ids" string="Number of ideas"/>
+        </xpath>
+    </field>
+</record>
+----
+
+Les éléments `xpath` possèdent les attributs suivants:
+
+expr::
+Une expression XPath qui permet la sélection d'un seul élément dans la vue parent.
+Génère une erreur si elle ne correspond à aucun élément ou à plusieurs éléments.
+
+position::
+Opération à appliquer à l'élément sélectionné:
+
+|===
+|`inside`|Ajoute le contenu de l'élément `xpath` à la fin de l'élément sélectionné
+|`replace`|Remplace l'élément sélectionné par le contenu de l'élément `xpath`
+|'before'|Insère le contenu de l'élément `xpath` avant l'élément sélectionné
+|'after'|Insère le contenu de l'élément `xpath` après l'élément sélectionné
+|'attributes'|Modifie les attributs de l'élément sélectionné en suivant les directives des balises `attribute`
+|===
+
+[NOTE]
+====
+Lorsque l'on cherche un seul élément, l'attribut `position` peut être défini directement sur l'élément à trouver.
+Les deux héritages ci-dessous donneront le même résultat:
+
+[source,xml]
+----
+<xpath expr="//field[@name='description']" position="after">
+    <field name="idea_ids" />
+</xpath>
+
+<field name="description" position="after">
+    <field name="idea_ids" />
+</field>
+----
+====
+
+=== Modifiez des modèles et vues existantes
+
+- En utilisant l'héritage du modèle, modifiez le modèle Partner existant pour ajouter un champ `instructor` booléen et un champ many2many qui correspond à la relation session-partenaire
+- En utilisant l'héritage des vues, affichez ces champs dans la vue du formulaire partenaire
+
+NOTE: Avec le mode debug, vous pouvez inspecter la vue pour trouver son ID externe et l'endroit où mettre le nouveau champ.
+
+1. Créez un fichier `openacademy/models/partner.py` et importez-le dans `\\__init__.py` de `models`
+
+[source,python]
+.models/partner.py
+----
+from odoo import fields, models
+
+class Partner(models.Model):
+    _inherit = 'res.partner'
+
+    # Add a new column to the res.partner model, by default partners are not
+    # instructors
+    instructor = fields.Boolean("Instructor", default=False)
+
+    session_ids = fields.Many2many('openacademy.session',
+        string="Attended Sessions", readonly=True)
+----
+
+[start=2]
+. Créez un fichier openacademy/views/partner.xml et ajoutez-le à `\\__manifest__.py` dans les `data`:
+
+[source,xml]
+.views/partner.xml
+----
+<?xml version="1.0" encoding="UTF-8"?>
+ <odoo>
+
+        <!-- Add instructor field to existing view -->
+        <record model="ir.ui.view" id="partner_instructor_form_view">
+            <field name="name">partner.instructor</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Sessions">
+                        <group>
+                            <field name="instructor"/>
+                            <field name="session_ids"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="contact_list_action">
+            <field name="name">Contacts</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem id="configuration_menu" name="Configuration"
+                  parent="main_openacademy_menu"/>
+        <menuitem id="contact_menu" name="Contacts"
+                  parent="configuration_menu"
+                  action="contact_list_action"/>
+
+</odoo>
+----
+
+Redémarrez votre serveur.
+Vous devez maintenant avoir un menu avec les contacts.
+
+Lorsque vous ouvrez le formulaire d'un contact, vous devez avoir un onglet "Session" correspondant au code
+que vous avez écrit ci-dessus.
+
+== Domaines
+
+Dans Odoo, les domaines de recherche sont des valeurs qui codent des conditions sur des enregistrements.
+Un domaine est une liste de critères utilisés pour sélectionner un sous-ensemble des enregistrements d'un modèle.
+Chaque critère est un triple avec un nom de champ, un opérateur et une valeur.
+
+Par exemple, lorsqu'il est utilisé sur le modèle des articles, le domaine suivant sélectionne tous les services
+avec un prix unitaire supérieur à 1000 :
+
+[source,python]
+----
+[('product_type', '=', 'service'), ('unit_price', '>', 1000)]
+----
+
+Par défaut, les critères sont combinés avec un `ET` implicite.
+Les opérateurs logiques `&` (AND), `|` (OR) et `!` (NOT) peuvent être utilisés pour combiner explicitement des critères.
+Ils sont utilisés en position de préfixe (l'opérateur est inséré avant ses arguments plutôt qu'entre).
+Par exemple, pour sélectionner des produits "qui sont des services OU ont un prix unitaire qui n'est PAS compris entre 1000 et 2000":
+
+[source,python]
+----
+[ '|' ,
+    ( 'product_type' ,  '=' ,  'service' ),
+    '!' ,  '&' ,
+        ( 'prix_unitaire' ,  '> =' ,  1000 ),
+        ( 'prix_unitaire' ,  '<' ,  2000 )]
+----
+
+Un paramètre `domain` peut être ajouté aux champs relationnels pour limiter les enregistrements valides pour la relation
+lorsque vous essayez de sélectionner des enregistrements dans l'interface client.
+
+=== Ajouter des domaines aux champs relationnels
+
+==== Domaine simple
+
+Lors de la sélection de l'instructeur pour une session ,
+seuls les instructeurs (partenaires avec le champ `instructor` à vrai) doivent être visibles.
+Modifiez en conséquence le champ instructor_id dans la session pour y ajouter le `domain`:
+
+[source,python]
+.models/models.py
+----
+    instructor_id = fields.Many2one('res.partner', string="Instructor",
+        domain=[('instructor', '=', True)])
+----
+
+NOTE: Un domaine déclaré en tant que liste littérale est évalué côté serveur et ne peut pas faire référence à des valeurs dynamiques sur le côté droit.
+A l'inverse, un domaine déclaré en tant que chaîne de caractères est évalué côté client et autorise les noms de champ sur le côté droit.
+
+Redémarrez le serveur et constatez que vous ne pouvez sélectionner que des partenaires instructeurs.
+
+==== Domaine complexe
+
+Créez de nouvelles catégories de partenaires Enseignant / Niveau 1 et Enseignant / Niveau 2 .
+L'instructeur d'une session peut être un instructeur ou un enseignant (de n'importe quel niveau).
+
+- Modifier le domaine du modèle de session:
+
+[source,python]
+.models/models.py
+----
+    instructor_id = fields.Many2one('res.partner', string="Instructor",
+        domain=['|', ('instructor', '=', True),
+                     ('category_id.name', 'ilike', "Teacher")])
+----
+
+Modifiez `openacademy/views/partner.xml` pour accéder aux catégories de partenaires :
+
+[source,xml]
+.views/partner.xml
+----
+                  parent="configuration_menu"
+                  action="contact_list_action"/>
+
+        <record model="ir.actions.act_window" id="contact_cat_list_action">
+            <field name="name">Contact Tags</field>
+            <field name="res_model">res.partner.category</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem id="contact_cat_menu" name="Contact Tags"
+                  parent="configuration_menu"
+                  action="contact_cat_list_action"/>
+
+        <record model="res.partner.category" id="teacher1">
+            <field name="name">Teacher / Level 1</field>
+        </record>
+        <record model="res.partner.category" id="teacher2">
+            <field name="name">Teacher / Level 2</field>
+        </record>
+
+</odoo>
+----
+
+Redémarrez votre serveur.
+Vous devez maintenant pouvoir sélectionner comme instructeur des partenaires qui ne sont pas instructeurs, mais qui ont
+au moins une étiquette "Teacher".
+
+
