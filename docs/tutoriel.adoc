@@ -399,10 +399,11 @@ Modifiez la ligne avec la clé `demo` de la façon suivante:
 Créez également un fichier de sécurité `security/ir.model.access.csv`:
 
 .security/ir.model.access.csv
-```csv
+[source,csv]
+----
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_openacademy_course,access_openacademy_course,model_openacademy_course,base.group_user,1,1,1,1
-```
+----
 
 Et ajouter le dans le fichier manifeste dans les `data`.
 
@@ -780,6 +781,14 @@ Ajoutez l'accès à l'objet session dans `views/openacademy.xml`, à la fin du f
               action="session_list_action"/>
 
 </odoo>
+----
+
+Enfin, ajouter les droits d'accès en ajoutant la ligne suivante à la fin du fichier `security/ir.model.access.csv`:
+
+[source,csv]
+.security/ir.model.access.csv
+----
+access_openacademy_session,access_openacademy_session,model_openacademy_session,base.group_user,1,1,1,1
 ----
 
 === Champs relationnels
@@ -1215,4 +1224,242 @@ Redémarrez votre serveur.
 Vous devez maintenant pouvoir sélectionner comme instructeur des partenaires qui ne sont pas instructeurs, mais qui ont
 au moins une étiquette "Teacher".
 
+== Champs calculés et valeurs par défaut
+
+Jusqu'à présent, les champs ont été stockés directement et récupérés directement dans la base de données.
+Les champs peuvent également être calculés.
+Dans ce cas, la valeur du champ n'est pas récupérée de la base de données mais calculée à la volée en appelant
+une méthode du modèle.
+
+Pour créer un champ calculé, créez un champ et définissez son attribut `compute` sur le nom d'une méthode.
+La méthode de calcul doit simplement définir la valeur du champ à calculer sur chaque enregistrement dans `self`.
+
+[IMPORTANT]
+====
+`self` est une collection
+
+L'objet `self` est un jeu d' enregistrements, c'est-à-dire une collection ordonnée d'enregistrements.
+Il prend en charge les opérations Python standard sur les collections, comme len(self)et iter(self), ainsi que les
+opérations de set supplémentaires comme recs1 + recs2.
+
+Itérer sur `self` donne les enregistrements un par un, où chaque enregistrement est lui-même une collection de taille 1.
+Vous pouvez accéder / affecter des champs sur des enregistrements uniques en utilisant la notation par points,
+comme `record.name`.
+====
+
+[source,python]
+----
+import random
+from odoo import models, fields, api
+
+class ComputedModel(models.Model):
+    _name = 'test.computed'
+
+    name = fields.Char(compute='_compute_name')
+
+    def _compute_name(self):
+        for record in self:
+            record.name = str(random.randint(1, 1e6))
+----
+
+=== Dépendances
+
+La valeur d'un champ calculé dépend généralement des valeurs des autres champs de l'enregistrement calculé.
+L'ORM attend du développeur qu'il spécifie ces dépendances sur la méthode de calcul avec le décorateur `api.depends()`.
+Les dépendances données sont utilisées par l'ORM pour déclencher le recalcul du champ chaque fois que certaines de ses
+dépendances ont été modifiées:
+
+[source,python]
+----
+from odoo import models, fields, api
+
+class ComputedModel(models.Model):
+    _name = 'test.computed'
+
+    name = fields.Char(compute='_compute_name')
+    value = fields.Integer()
+
+    @api.depends('value')
+    def _compute_name(self):
+        for record in self:
+            record.name = "Record with value %s" % record.value
+----
+
+=== Créez un champ calculé
+
+- Ajouter le pourcentage de sièges occupés au modèle de session
+- Afficher ce champ dans l'arborescence et les vues de formulaire
+- Afficher le champ sous forme de barre de progression
+
+Modifiez votre modèle de session pour y ajouter le champ calculé et sa fonction de calcul:
+
+[source,python]
+.models/models.py
+----
+    taken_seats = fields.Float(string="Taken seats", compute='_taken_seats')
+
+    @api.depends('seats', 'attendee_ids')
+    def _taken_seats(self):
+        for r in self:
+            if not r.seats:
+                r.taken_seats = 0.0
+            else:
+                r.taken_seats = 100.0 * len(r.attendee_ids) / r.seats
+----
+
+Affichez le champs dans la vue formulaire de la session:
+
+[source,xml]
+.views/openacademy.xml
+----
+                                <field name="start_date"/>
+                                <field name="duration"/>
+                                <field name="seats"/>
+                                <field name="taken_seats" widget="progressbar"/>
+                            </group>
+                        </group>
+                        <label for="attendee_ids"/>
+----
+
+Et dans sa vue liste:
+
+[source,xml]
+.views/openacademy.xml
+----
+               <tree string="Session Tree">
+                    <field name="name"/>
+                    <field name="course_id"/>
+                    <field name="taken_seats" widget="progressbar"/>
+                </tree>
+            </field>
+        </record>
+----
+
+Redémarrez votre serveur pour voir votre champ calculé.
+Modifiez la liste des participants et/ou le nombre de places disponibles pour voir le champ calculé se mettre à jour
+automatiquement.
+
+=== Valeurs par défaut
+
+Tout champ peut recevoir une valeur par défaut.
+Dans la définition de champ, ajoutez l'option `default=X` où `X` est:
+- soit une valeur littérale Python (booléen, entier, flottant, chaîne)
+- soit une fonction prenant un jeu d'enregistrements et renvoyant une valeur:
+
+[source,python]
+----
+name = fields.Char(default="Unknown")
+user_id = fields.Many2one('res.users', default=lambda self: self.env.user)
+----
+
+[NOTE]
+====
+L'objet `self.env` donne accès aux paramètres de requête et à d'autres choses utiles:
+
+- `self.env.cr` est l' objet curseur de la base de données ; il est utilisé pour interroger la base de données en direct.
+- `self.env.uid` est l'ID de l'utilisateur actuel dans la base de données.
+- `self.env.user` est l'enregistrement de l'utilisateur actuel
+- `self.env.context` est le dictionnaire de contexte
+- `self.env.ref(xml_id)` renvoie l'enregistrement correspondant à un identifiant XML
+- `self.env[model_name]` renvoie une instance du modèle donné
+====
+
+==== Créez des champs avec valeur par défaut
+
+Sur l'objet session:
+
+- Définissez la valeur par défaut du champ `start_date` à aujourd'hui.
+- Ajoutez un champ activedans la classe Session et définissez les sessions comme actives par défaut.
+
+Modifiez la session dans le fichier `models/models.py`:
+
+[source,python]
+.models/models.py
+----
+(...)
+    start_date = fields.Date(default=fields.Date.today)
+(...)
+    active = fields.Boolean(default=True)
+----
+
+NOTE: Le champ `active` est un champ "magique": tous les enregistrements pour lesquels `active == False` sont rendus invisibles dans l'interface d'Odoo.
+
+== Contraintes sur les modèles
+
+Odoo propose deux façons de configurer des invariants vérifiés automatiquement:
+- Les contraintes Python
+- Les contraintes SQL
+
+=== Contraintes Python
+
+Une contrainte Python est définie comme une méthode décorée `api.constrains()` et invoquée sur un jeu d'enregistrements.
+Le décorateur spécifie les champs impliqués dans la contrainte, de sorte que la contrainte est automatiquement évaluée
+lorsque l'un d'eux est modifié.
+La méthode doit déclencher une exception si sa contrainte n'est pas satisfaite:
+
+[source,python]
+----
+from odoo.exceptions import ValidationError
+
+@api.constrains('age')
+def _check_something(self):
+    for record in self:
+        if record.age > 20:
+            raise ValidationError("Your record is too old: %s" % record.age)
+    # all records passed the test, don't return anything
+----
+
+==== Créez une contrainte Python
+
+Ajoutez une contrainte qui vérifie que le formateur n'est pas présent dans les participants de sa propre session:
+
+[source,python]
+.models/models.py
+----
+from odoo.exceptions import ValidationError
+
+(...)
+
+    @api.constrains('instructor_id', 'attendee_ids')
+    def _check_instructor_not_in_attendees(self):
+        for r in self:
+            if r.instructor_id and r.instructor_id in r.attendee_ids:
+                raise exceptions.ValidationError("A session's instructor can't be an attendee")
+----
+
+NOTE: La ligne d'import des dépendances doit être placée en début de fichier
+
+Redémarrez le serveur et vérifiez la contrainte.
+
+=== Contraintes SQL
+
+Les contraintes SQL sont définies via l'attribut de modèle `_sql_constraints`.
+Ce dernier est affecté à une liste de triplets de chaînes (name, sql_definition, message), où `name` est un
+nom de contrainte SQL valide, `sql_definition` une expression SQL de type `table_constraint`
+et `message` le message d'erreur si la condition n'est pas remplie.
+
+==== Créez une contrainte SQL
+
+Ajoutez les contraintes suivantes:
+
+- VÉRIFIEZ que la description et le titre du cours sont différents
+- Rendre le nom du cours UNIQUE
+
+Modifiez le modèle du cours pour y intégrer les contraintes:
+
+[source,python]
+.models/models.py
+----
+    _sql_constraints = [
+        ('name_description_check',
+         'CHECK(name != description)',
+         "The title of the course should not be the description"),
+
+        ('name_unique',
+         'UNIQUE(name)',
+         "The course title must be unique"),
+    ]
+----
+
+Redémarrez le serveur et vérifiez les deux contraintes.
 
