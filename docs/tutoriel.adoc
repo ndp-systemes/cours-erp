@@ -1424,7 +1424,7 @@ from odoo.exceptions import ValidationError
     def _check_instructor_not_in_attendees(self):
         for r in self:
             if r.instructor_id and r.instructor_id in r.attendee_ids:
-                raise exceptions.ValidationError("A session's instructor can't be an attendee")
+                raise ValidationError("A session's instructor can't be an attendee")
 ----
 
 NOTE: La ligne d'import des dépendances doit être placée en début de fichier
