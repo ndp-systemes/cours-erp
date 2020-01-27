@@ -1589,6 +1589,13 @@ En raison de certains hooks internes dans l'ORM, une telle action est déclarée
         </record>
 ----
 
+[NOTE]
+====
+La balise `<button>` avec `type="object"` permet d'appeler une méthode depuis l'interface.
+
+Cela fonctionne sur n'importe quelle vue, pas seulement les assistants.
+====
+
 [source,python]
 .models/wizard.py
 ----
@@ -1601,3 +1608,42 @@ En raison de certains hooks internes dans l'ORM, une telle action est déclarée
         return {}
 ----
 
+== Méthodes
+
+Vous trouverez dans la https://www.odoo.com/documentation/13.0/reference/orm.html#common-orm-methods[documentation Odoo]
+la liste des méthodes les plus courantes qui sont disponibles.
+Rapidement:
+
+create::
+Permet de créer un nouvel enregistrement.
+Si vous voulez créer un enregistrement sur un autre modèle, appelez la méthode sur l'objet `self.env['nom.du.modele']`:
+
+[source,python]
+----
+rec = self.env['openacademy.course'].create({
+    'name': "Cours 2",
+    'description': "Description du cours 2"
+})
+----
+
+search::
+Permet de chercher un enregistrement dans la base de données sur la base d'un domaine:
+
+[source,python]
+----
+records = self.env['openacademy.course'].search([('name', '=', "Cours 2")])
+----
+
+write::
+Permet de mettre à jour un ou plusieurs enregistrements.
+
+[source,python]
+----
+records = self.env['openacademy.course'].search([('name', '=', "Cours 2")])
+records.write({
+    'name': "Cours 2 modifié",
+    'description': "Description du cours 2"
+})
+----
+
+NOTE: Lorsque vous voulez modifier un seul champ sur un seul enregistrement, vous pouvez affecter le champ directement: `record.name = "Cours 2 modifié"`
