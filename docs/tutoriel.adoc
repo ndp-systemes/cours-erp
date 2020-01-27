@@ -1034,9 +1034,9 @@ Opération à appliquer à l'élément sélectionné:
 |===
 |`inside`|Ajoute le contenu de l'élément `xpath` à la fin de l'élément sélectionné
 |`replace`|Remplace l'élément sélectionné par le contenu de l'élément `xpath`
-|'before'|Insère le contenu de l'élément `xpath` avant l'élément sélectionné
-|'after'|Insère le contenu de l'élément `xpath` après l'élément sélectionné
-|'attributes'|Modifie les attributs de l'élément sélectionné en suivant les directives des balises `attribute`
+|`before`|Insère le contenu de l'élément `xpath` avant l'élément sélectionné
+|`after`|Insère le contenu de l'élément `xpath` après l'élément sélectionné
+|`attributes`|Modifie les attributs de l'élément sélectionné en suivant les directives des balises `attribute`
 |===
 
 [NOTE]
@@ -1151,7 +1151,7 @@ Par exemple, pour sélectionner des produits "qui sont des services OU ont un pr
 [ '|' ,
     ( 'product_type' ,  '=' ,  'service' ),
     '!' ,  '&' ,
-        ( 'prix_unitaire' ,  '> =' ,  1000 ),
+        ( 'prix_unitaire' ,  '>=' ,  1000 ),
         ( 'prix_unitaire' ,  '<' ,  2000 )]
 ----
 
@@ -1462,4 +1462,142 @@ Modifiez le modèle du cours pour y intégrer les contraintes:
 ----
 
 Redémarrez le serveur et vérifiez les deux contraintes.
+
+== Assistants
+
+Les assistants décrivent des sessions interactives avec l'utilisateur (ou des boîtes de dialogue) via des formulaires dynamiques.
+Un assistant est simplement un modèle qui étend la classe `TransientModel` au lieu de `Model`.
+La classe `TransientModel` étend `Model` et réutilise tous ses mécanismes existants, avec les particularités suivantes:
+
+- Les enregistrements de l'assistant ne sont pas censés être persistants;
+ils sont automatiquement supprimés de la base de données après un certain temps.
+C'est pourquoi ils sont appelés transitoires.
+- Les modèles d'assistant ne nécessitent pas de droits d'accès explicites: les utilisateurs ont toutes les autorisations sur les enregistrements de l'assistant.
+- Les enregistrements de l'assistant peuvent faire référence à des enregistrements réguliers ou des enregistrements de l'assistant via les champs many2one, mais les enregistrements réguliers ne peuvent pas faire référence aux enregistrements de l'assistant via un champ many2one.
+
+=== Créez un assistant
+
+Nous voulons créer un assistant qui permet aux utilisateurs de créer des participants pour une session particulière ou pour une liste de sessions à la fois.
+
+Créez un modèle d'assistant avec une relation many2one avec le modèle Session et une relation many2many avec le modèle Partner.
+
+Créez un nouveau fichier pour cela (`openacademy/models/wizard.py`) et n'oubliez pas de l'importer.
+
+[source,python]
+.models/wizard.py
+----
+from odoo import models, fields, api
+
+class Wizard(models.TransientModel):
+    _name = 'openacademy.wizard'
+    _description = "Wizard: Quick Registration of Attendees to Sessions"
+
+    session_id = fields.Many2one('openacademy.session',
+        string="Session", required=True)
+    attendee_ids = fields.Many2many('res.partner', string="Attendees")
+----
+
+=== Lancement des assistants
+
+Les assistants sont lancés par des actions, avec le champ `target` défini sur la valeur `new`.
+Ce dernier ouvre la vue de l'assistant dans une fenêtre contextuelle.
+L'action peut être déclenchée par un élément de menu.
+
+Il existe une autre façon de lancer l'assistant:
+en utilisant un ir.actions.act_window enregistrement comme ci-dessus,
+mais avec un champ supplémentaire `binding_model_id` qui spécifie dans le contexte du modèle l'action disponible.
+L'assistant apparaîtra dans les actions contextuelles du modèle, au-dessus de la vue principale.
+En raison de certains hooks internes dans l'ORM, une telle action est déclarée en XML avec la balise act_window.
+
+[source,xml]
+----
+<act_window id="launch_the_wizard"
+            name="Launch the Wizard"
+            binding_model="context.model.name"
+            res_model="wizard.model.name"
+            view_mode="form"
+            target="new"/>
+----
+
+==== Lancez votre assistant
+
+- Définissez une vue de formulaire pour l'assistant.
+- Ajoutez l'action pour la lancer dans le contexte du modèle de session.
+
+[source,xml]
+.views/openacademy.xml
+----
+                  parent="openacademy_menu"
+                  action="session_list_action"/>
+
+        <record model="ir.ui.view" id="wizard_form_view">
+            <field name="name">wizard.form</field>
+            <field name="model">openacademy.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Add Attendees">
+                    <group>
+                        <field name="session_id"/>
+                        <field name="attendee_ids"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <act_window id="launch_session_wizard"
+                    name="Add Attendees"
+                    binding_model="openacademy.session"
+                    res_model="openacademy.wizard"
+                    view_mode="form"
+                    target="new"/>
+
+</odoo>
+----
+
+- Définissez une valeur par défaut pour le champ de session dans l'assistant; utilisez la clé du contexte (`self._context`) `active_id` pour récupérer la session en cours.
+
+
+[source,python]
+.models/wizard.py
+----
+    _name = 'openacademy.wizard'
+    _description = "Wizard: Quick Registration of Attendees to Sessions"
+
+    def _default_session(self):
+        return self.env['openacademy.session'].browse(self._context.get('active_id'))
+
+    session_id = fields.Many2one('openacademy.session',
+        string="Session", required=True, default=_default_session)
+    attendee_ids = fields.Many2many('res.partner', string="Attendees")
+----
+
+- Ajoutez des boutons à l'assistant et implémentez la méthode correspondante pour ajouter les participants à la session donnée.
+
+[source,xml]
+.views/openacademy.xml
+----
+                        <field name="session_id"/>
+                        <field name="attendee_ids"/>
+                    </group>
+                    <footer>
+                        <button name="subscribe" type="object"
+                                string="Subscribe" class="oe_highlight"/>
+                        or
+                        <button special="cancel" string="Cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+----
+
+[source,python]
+.models/wizard.py
+----
+    session_id = fields.Many2one('openacademy.session',
+        string="Session", required=True, default=_default_session)
+    attendee_ids = fields.Many2many('res.partner', string="Attendees")
+
+    def subscribe(self):
+        self.session_id.attendee_ids |= self.attendee_ids
+        return {}
+----
 
