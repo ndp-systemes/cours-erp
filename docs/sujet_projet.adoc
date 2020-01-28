@@ -1,6 +1,6 @@
-# Sujet du projet 2020
+= Sujet du projet 2020
 
-## Modalités d'évaluation
+== Modalités d'évaluation
 
 Le module ERP sera évalué sur la base du projet dont le sujet est décrit ci-dessous.
 
@@ -20,3 +20,22 @@ Utiliser de tels modules comme base de votre travail est probablement un mauvais
 
 Construisez plutôt votre module depuis la feuille blanche, et n'hésitez pas à y inclure des astuces inspirées d'autres modules.
 ====
+
+== Sujet du projet
+
+Le projet porte sur le développement d'une application de gestion d'un lycée.
+
+Le module central doit permettre de gérer les emplois du temps.
+Il comporte donc au moins les modèles suivants:
+
+- Elèves (res.partner)
+- Professeur (res.partner)
+- Filière
+- Matière
+- Cours
+- Classe
+- Salle
+
+Vous êtes libres d'étendre le modèle à d'autres aspects de la gestion d'un lycée.
+
+Le projet doit implémenter chacune des notions du tutoriel.
