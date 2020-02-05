@@ -39,3 +39,12 @@ Il comporte donc au moins les modèles suivants:
 Vous êtes libres d'étendre le modèle à d'autres aspects de la gestion d'un lycée.
 
 Le projet doit implémenter chacune des notions du tutoriel.
+
+== Rendu
+
+Votre projet sera à rendre au plus tard le 29/02/2020.
+
+Vous m'enverrez votre module sous la forme d'un ZIP à votre nom,
+ainsi qu'une petite documentation me permettant de comprendre comment se servir de votre module du point de vue utilisateur.
+
+Le tout sera à m'envoyer à l'adresse suivante: nicolas.piganeau@ndp-systemes.fr
