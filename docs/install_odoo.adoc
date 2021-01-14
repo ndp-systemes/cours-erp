@@ -93,7 +93,7 @@ Téléchargez wkhtmltopdf https://github.com/wkhtmltopdf/wkhtmltopdf/releases/ta
 Installez le deb avec la commande suivante dans le dossier où vous avez téléchargé wkhtmltopdf :
 
 ```
-$ sudo apt-get install ./wkhtmltox_0.12.5-1.bionic_amd64.deb
+$ sudo apt-get install ./wkhtmltox_0.12.5-1.buster_amd64.deb
 ```
 
 ## Installer Odoo
