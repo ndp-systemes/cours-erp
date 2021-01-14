@@ -138,7 +138,7 @@ NOTE: Il est complètement inutile d'essayer d'aller plus loin si cette commande
 La première fois que vous lancez Odoo **(et uniquement la première fois)**, faîtes-le avec la commande suivante qui va générer un fichier de configuration :
 
 ```
-workspace/odoo$ python3.6 odoo-bin -s -c odoo.conf
+workspace/odoo$ python3 odoo-bin -s -c odoo.conf
 ```
 
 Arrêtez le serveur immédiatement avec `Ctrl-C` et vérifiez que vous avez bien un fichier de configuration `workspace/odoo/odoo.conf`.
@@ -172,7 +172,7 @@ addons_path = workspace/odoo/odoo/addons,workspace/odoo/addons,workspace/odoo_mo
 Nous sommes maintenant prêts pour lancer le serveur Odoo avec la commande suivante :
 
 ```
-workspace/odoo$ python3.6 odoo-bin -d test -c odoo.conf
+workspace/odoo$ python3 odoo-bin -d test -c odoo.conf
 ```
 
 Où `test` est le nom de la base de données que vous voulez créer.
