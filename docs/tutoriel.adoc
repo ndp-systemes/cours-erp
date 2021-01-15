@@ -9,7 +9,7 @@ Pour rappel, le serveur Odoo se démarre avec la commande suivante dans le dossi
 
 [source]
 ----
-workspace/odoo$ python3.6 odoo-bin -d tutoriel -c odoo.conf
+workspace/odoo$ python3 odoo-bin -d tutoriel -c odoo.conf
 ----
 
 Où `tutoriel` est le nom de la base de données que vous allez utiliser pour ce tutoriel.
@@ -413,7 +413,7 @@ Redémarrez maintenant votre serveur Odoo, puis retournez dans le menu des appli
 ====
 Pour éviter d'avoir à remettre à jour manuellement votre module, redémarrez dorénavant votre serveur avec la commande suivante:
 
-`workspace/odoo$ python3.6 odoo-bin -d tutoriel -u openacademy -c odoo.conf`
+`workspace/odoo$ python3 odoo-bin -d tutoriel -u openacademy -c odoo.conf`
 
 L'option `-u` permet de faire la mise à jour du module donné au démarrage du serveur.
 ====
