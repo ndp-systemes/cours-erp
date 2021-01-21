@@ -1,0 +1,41 @@
+= Sujet du projet 2021
+
+== Modalités d'évaluation
+
+Le module ERP sera évalué sur la base du projet dont chacun pourra choisir le sujet.
+
+Vous pouvez choisir de travailler à plusieurs de façon à ce que vous puissiez vous entraider.
+En effet, savoir demander de l'aide et aider ses collègues sont des qualités très importantes chez un bon développeur.
+
+Vous serez donc noté, non pas tant sur la réalisation du sujet du projet lui-même, mais plus sur votre touche personnelle au travers de :
+
+- Votre capacité à montrer votre maîtrise du framework Odoo
+- Votre capacité à aller au-delà de ce qui est explicitement demandé par le client, tout en restant dans le sujet (compréhension du besoin implicite).
+
+[IMPORTANT]
+====
+Vous trouverez sans peine de nombreux modules communautaires d'Odoo, peut-être certains dont les fonctionnalités s'approchent du présent sujet.
+
+Utiliser de tels modules comme base de votre travail est probablement un mauvais calcul dans la mesure où ils contiennent de nombreuses fonctionnalités que vous n'aurez pas apprises lors de ce cours.
+
+Construisez plutôt votre module depuis la feuille blanche, et n'hésitez pas à y inclure des astuces inspirées d'autres modules.
+====
+
+Le projet doit implémenter chacune des notions du tutoriel.
+
+L'ordre de grandeur à respecter est de créer environ 5/6 modèles et d'en hériter un ou deux (typiquement `res.partner`.)
+
+== Sujets
+
+Vincent: Gestion d'un hötel
+Pierre et Marin: Gestion d'une école de musique
+Jayson et Lucas: Gestion de location de DVD
+
+== Rendu
+
+Votre projet sera à rendre au plus tard le 28/02/2021.
+
+Vous m'enverrez votre module sous la forme d'un ZIP à votre nom,
+ainsi qu'une petite documentation me permettant de comprendre comment se servir de votre module du point de vue utilisateur.
+
+Le tout sera à m'envoyer à l'adresse suivante: nicolas.piganeau@ndp-systemes.fr

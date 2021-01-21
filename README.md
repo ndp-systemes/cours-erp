@@ -4,6 +4,7 @@
 - [Installation d'Odoo](./docs/install_odoo.adoc)
 - [Tutoriel de développement Odoo](./docs/tutoriel.adoc)
 - [Sujet du projet 2020](./docs/sujet_projet.adoc)
+- [Sujet du projet 2021](./docs/sujet_projet_2021.adoc)
 
 ### Documentation de référence Odoo (en anglais)
 
