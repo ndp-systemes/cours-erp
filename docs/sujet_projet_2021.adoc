@@ -33,7 +33,7 @@ Pierre et Marin: Gestion d'une école de musique
 
 Jayson et Lucas: Gestion de location de DVD
 
-Kevin: Gestion d'une librairie
+Kevin et Cyril: Gestion d'une librairie
 
 == Rendu
 
