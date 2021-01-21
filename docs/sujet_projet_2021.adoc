@@ -33,6 +33,8 @@ Pierre et Marin: Gestion d'une école de musique
 
 Jayson et Lucas: Gestion de location de DVD
 
+Kevin: Gestion d'une librairie
+
 == Rendu
 
 Votre projet sera à rendre au plus tard le 28/02/2021.
