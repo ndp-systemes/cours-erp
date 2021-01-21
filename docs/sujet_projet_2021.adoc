@@ -28,7 +28,9 @@ L'ordre de grandeur à respecter est de créer environ 5/6 modèles et d'en hér
 == Sujets
 
 Vincent: Gestion d'un hötel
+
 Pierre et Marin: Gestion d'une école de musique
+
 Jayson et Lucas: Gestion de location de DVD
 
 == Rendu
