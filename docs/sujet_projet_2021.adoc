@@ -27,7 +27,7 @@ L'ordre de grandeur à respecter est de créer environ 5/6 modèles et d'en hér
 
 == Sujets
 
-Vincent: Gestion d'un hötel
+Vincent: Gestion d'une entreprise de promotion immobilière
 
 Pierre et Marin: Gestion d'une école de musique
 
