@@ -37,6 +37,8 @@ Kevin et Cyril: Gestion d'une librairie
 
 Alan: Gestion d'un hôtel
 
+Brendan: Gestion d'un hôtel
+
 == Rendu
 
 Votre projet sera à rendre au plus tard le 28/02/2021.
